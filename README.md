@@ -28,7 +28,7 @@ FYI, more discussions:
 ## Install
 
 ```
-[inheritable-var "0.1.1"]
+[inheritable-var "0.1.2"]
 ```
 
 ## Usage

@@ -37,15 +37,11 @@
   (assert-args
    (vector? name-vals-vec) "a vector for bindings"
    (even? (count name-vals-vec)) "an even number of forms in binding vector")
-  (let [[ks vs] (reduce (fn [[ks vs] [k v]]
-                          [(conj ks k) (conj vs v)])
-                        []
-                        (partition 2 name-vals-vec))]
-    `(let [inner-binding# (hash-map ~@name-vals-vec)
-           outer-binding# (into {} (for [[k# v#] inner-binding#]
-                                     [k# (deref k#)]))]
-       (try
-         (set-inheritable-binding! inner-binding#)
-         ~@body
-         (finally 
-           (set-inheritable-binding! outer-binding#))))))
+  `(let [inner-binding# (hash-map ~@name-vals-vec)
+         outer-binding# (into {} (for [[k# v#] inner-binding#]
+                                   [k# (deref k#)]))]
+     (try
+       (set-inheritable-binding! inner-binding#)
+       ~@body
+       (finally 
+         (set-inheritable-binding! outer-binding#)))))
