@@ -34,6 +34,10 @@ FYI, more discussions:
 ## Usage
 
 ```
+;; first require this lib
+(ns your.ns
+  (:require [inheritable-var.core :refer [inheritable-var definheritable inheritable-binding]]))
+
 ;; create a thread inheritable variable
 (def foo (inheritable-var (contantly "foo")))
 ;; or 

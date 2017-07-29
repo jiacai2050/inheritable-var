@@ -41,5 +41,5 @@
       (let [x (inheritable-var (constantly 5))
             adder #(+ % @x)]
         (inheritable-binding [x 10]
-                             (doseq [s (pmap adder (repeat 3 5))]
+                             (doseq [s (pmap adder (repeat 100 5))]
                                (is (= s 15))))))))
