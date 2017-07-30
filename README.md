@@ -78,7 +78,7 @@ FYI, more discussions:
       (inheritable-binding [foo "foo-in-executor"]
                            (let [^ExecutorService executor (->inheritable (Executors/newFixedThreadPool 1))
                                  foo-reset @(.submit executor ^Callable (fn [] (.doSet foo "foo-reset") @foo))
-                                 foo-unchanged @(.submit executor (constantly @foo))]
+                                 foo-unchanged @(.submit executor ^Callable (constantly @foo))]
                              (is (= "foo-reset" foo-reset))
                              (is (= "foo-in-executor" foo-unchanged))))
       (is (= @foo "foo")))))
