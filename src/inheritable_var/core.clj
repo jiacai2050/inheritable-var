@@ -1,9 +1,12 @@
 (ns inheritable-var.core
-  (:import [clojure.lang IDeref Settable]))
+  (:import [clojure.lang AFn IDeref Settable]
+           [com.alibaba.ttl TransmittableThreadLocal TtlCallable TtlRunnable]
+           com.alibaba.ttl.threadpool.TtlExecutors
+           [java.util.concurrent Executor ExecutorService ScheduledExecutorService]))
 
 (defn inheritable-var [init-fn & [child-fn]]
   (let [child-fn (when-not child-fn identity)
-        stub (proxy [InheritableThreadLocal] []
+        stub (proxy [TransmittableThreadLocal] []
                (initialValue [] (init-fn))
                (childValue [parent-value] (child-fn parent-value)))]
     (reify
@@ -45,3 +48,18 @@
        ~@body
        (finally 
          (set-inheritable-binding! outer-binding#)))))
+
+(defmulti ->inheritable class)
+(defmethod ->inheritable Runnable [^Runnable runnable]
+  (TtlRunnable/get runnable))
+(defmethod ->inheritable Callable [^Callable callable]
+  (TtlCallable/get callable))
+(defmethod ->inheritable Executor [^Executor executor]
+  (TtlExecutors/getTtlExecutor executor))
+(defmethod ->inheritable ExecutorService [^ExecutorService executor]
+  (TtlExecutors/getTtlExecutorService executor))
+(defmethod ->inheritable ScheduledExecutorService [^ScheduledExecutorService executor]
+  (TtlExecutors/getTtlScheduledExecutorService executor))
+
+(prefer-method ->inheritable Callable Runnable)
+

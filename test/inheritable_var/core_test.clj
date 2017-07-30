@@ -4,7 +4,7 @@
             [inheritable-var.core :refer :all])
   (:import [java.util.concurrent CountDownLatch Executors ExecutorService]))
 
-(deftest thread-transmitabble-test
+(deftest single-thread-test
   (let [foo (inheritable-var (constantly "foo"))
         bar (inheritable-var (constantly "bar"))]
     (testing "simple thread..."
@@ -28,18 +28,29 @@
                              (is (= bar-in-async "bar-in-async"))))
       (is (= @foo "foo"))
       (is (= @bar "bar")))
-    (testing "thread pool..."
-      (inheritable-binding [foo "foo-in-executor"
-                            bar "bar-in-executor"]
-                           (let [^ExecutorService executor (Executors/newFixedThreadPool 1)
-                                 [foo-in-executor bar-in-executor] @(.submit executor ^Callable (constantly [@foo @bar]))]
-                             (is (= "foo-in-executor" foo-in-executor))
-                             (is (= "bar-in-executor" bar-in-executor))))
-      (is (= @foo "foo"))
-      (is (= @bar "bar")))
     (testing "pmap ..."
       (let [x (inheritable-var (constantly 5))
             adder #(+ % @x)]
         (inheritable-binding [x 10]
                              (doseq [s (pmap adder (repeat 100 5))]
                                (is (= s 15))))))))
+
+(deftest thread-pool-test
+  (let [foo (inheritable-var (constantly "foo"))]
+    (testing "->inheritable fn..."
+      (inheritable-binding [foo "foo-in-executor"]
+                           (let [^ExecutorService executor (Executors/newFixedThreadPool 1)
+                                 foo-reset @(.submit executor (->inheritable (fn [] (.doSet foo "foo-reset" ) @foo)))
+                                 foo-unchanged @(.submit executor (->inheritable (constantly @foo)))]
+                             (is (= "foo-reset" foo-reset))
+                             (is (= "foo-in-executor" foo-unchanged))))
+
+      (is (= @foo "foo")))
+    (testing "->inheritable executor..."
+      (inheritable-binding [foo "foo-in-executor"]
+                           (let [^ExecutorService executor (->inheritable (Executors/newFixedThreadPool 1))
+                                 foo-reset @(.submit executor ^Callable (fn [] (.doSet foo "foo-reset") @foo))
+                                 foo-unchanged @(.submit executor (constantly @foo))]
+                             (is (= "foo-reset" foo-reset))
+                             (is (= "foo-in-executor" foo-unchanged))))
+      (is (= @foo "foo")))))
