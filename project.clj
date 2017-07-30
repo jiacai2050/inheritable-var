@@ -1,4 +1,4 @@
-(defproject inheritable-var "0.1.3"
+(defproject inheritable-var "0.1.4"
   :description "A wrapper of TransmittableThreadLocal, an enhanced version of InheritableThreadLocal, to define inheritable variable between threads, even using thread pool"
   :url "https://github.com/jiacai2050/inheritable-var"
   :license {:name "Eclipse Public License"
